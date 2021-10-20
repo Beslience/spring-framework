@@ -109,6 +109,8 @@ class ConstructorResolver {
 
 
 	/**
+	 * 选择构造器来创建实例 并且为构造器参数注入
+	 *
 	 * "autowire constructor" (with constructor arguments by type) behavior.
 	 * Also applied if explicit constructor argument values are specified,
 	 * matching all remaining arguments with beans from the bean factory.
@@ -224,6 +226,7 @@ class ConstructorResolver {
 								paramNames = pnd.getParameterNames(candidate);
 							}
 						}
+						// 构建调用构造器的参数数组
 						argsHolder = createArgumentArray(beanName, mbd, resolvedValues, bw, paramTypes, paramNames,
 								getUserDeclaredConstructor(candidate), autowiring, candidates.length == 1);
 					}
@@ -295,6 +298,7 @@ class ConstructorResolver {
 		return bw;
 	}
 
+	// 创建实例
 	private Object instantiate(
 			String beanName, RootBeanDefinition mbd, Constructor<?> constructorToUse, Object[] argsToUse) {
 
@@ -764,6 +768,7 @@ class ConstructorResolver {
 							"] - did you specify the correct bean references as arguments?");
 				}
 				try {
+					// 解析参数得到注入的对象
 					Object autowiredArgument = resolveAutowiredArgument(
 							methodParam, beanName, autowiredBeanNames, converter, fallback);
 					args.rawArguments[paramIndex] = autowiredArgument;
@@ -779,6 +784,7 @@ class ConstructorResolver {
 		}
 
 		for (String autowiredBeanName : autowiredBeanNames) {
+			// 注册依赖关系
 			this.beanFactory.registerDependentBean(autowiredBeanName, beanName);
 			if (logger.isDebugEnabled()) {
 				logger.debug("Autowiring by type from bean name '" + beanName +
@@ -860,6 +866,7 @@ class ConstructorResolver {
 			return injectionPoint;
 		}
 		try {
+			// 解析得到注入对象
 			return this.beanFactory.resolveDependency(
 					new DependencyDescriptor(param, true), beanName, autowiredBeanNames, typeConverter);
 		}
