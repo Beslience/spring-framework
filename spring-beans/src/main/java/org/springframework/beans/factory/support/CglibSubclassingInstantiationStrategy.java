@@ -220,6 +220,8 @@ public class CglibSubclassingInstantiationStrategy extends SimpleInstantiationSt
 
 
 	/**
+	 * Lookup注解
+	 *
 	 * CGLIB MethodInterceptor to override methods, replacing them with an
 	 * implementation that returns a bean looked up in the container.
 	 */
@@ -250,6 +252,9 @@ public class CglibSubclassingInstantiationStrategy extends SimpleInstantiationSt
 				return (argsToUse != null ? this.owner.getBeanProvider(genericReturnType).getObject(argsToUse) :
 						this.owner.getBeanProvider(genericReturnType).getObject());
 			}
+			// 并没调用
+//			method.invoke(obj, args)
+			// 不会调用方法
 		}
 	}
 
