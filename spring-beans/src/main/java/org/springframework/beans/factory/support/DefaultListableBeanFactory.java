@@ -1325,9 +1325,11 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 			Object instanceCandidate;
 
 			if (matchingBeans.size() > 1) {
+				// 选出优先级更高的依赖
 				autowiredBeanName = determineAutowireCandidate(matchingBeans, descriptor);
 				if (autowiredBeanName == null) {
 					if (isRequired(descriptor) || !indicatesMultipleBeans(type)) {
+						// 满足要求的多个依赖
 						return descriptor.resolveNotUnique(descriptor.getResolvableType(), matchingBeans);
 					}
 					else {
@@ -1470,6 +1472,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 		return getAutowireCandidateResolver().isRequired(descriptor);
 	}
 
+	// 注解的属性类型并不是可以接受多个Bean的类型, 例如数组、map、集合
 	private boolean indicatesMultipleBeans(Class<?> type) {
 		return (type.isArray() || (type.isInterface() &&
 				(Collection.class.isAssignableFrom(type) || Map.class.isAssignableFrom(type))));
