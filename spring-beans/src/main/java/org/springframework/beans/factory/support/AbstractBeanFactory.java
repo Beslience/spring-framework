@@ -899,6 +899,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 	@Override
 	public void addEmbeddedValueResolver(StringValueResolver valueResolver) {
 		Assert.notNull(valueResolver, "StringValueResolver must not be null");
+		// 调用入口 PropertySourcesPlaceholderConfigurer 配置属性解析
 		this.embeddedValueResolvers.add(valueResolver);
 	}
 
@@ -914,6 +915,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 			return null;
 		}
 		String result = value;
+		// 配置解析内容 转化为embeddedValueResolver, 入口要看 add方法
 		for (StringValueResolver resolver : this.embeddedValueResolvers) {
 			result = resolver.resolveStringValue(result);
 			if (result == null) {
