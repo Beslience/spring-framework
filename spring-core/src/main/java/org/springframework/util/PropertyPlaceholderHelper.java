@@ -52,8 +52,14 @@ public class PropertyPlaceholderHelper {
 	}
 
 
+	/**
+	 * 占位符前缀
+	 */
 	private final String placeholderPrefix;
 
+	/**
+	 * 占位符后缀
+	 */
 	private final String placeholderSuffix;
 
 	private final String simplePrefix;
@@ -129,57 +135,80 @@ public class PropertyPlaceholderHelper {
 	protected String parseStringValue(
 			String value, PlaceholderResolver placeholderResolver, @Nullable Set<String> visitedPlaceholders) {
 
+		// 获取第一个占位符前缀索引值 startIndex
 		int startIndex = value.indexOf(this.placeholderPrefix);
+		// 如果startIndex 为-1, 表示没有占位符, 不需要继续解析, 直接返回原值
 		if (startIndex == -1) {
 			return value;
 		}
 
 		StringBuilder result = new StringBuilder(value);
 		while (startIndex != -1) {
+			// 获取对应占位符结束位置索引
 			int endIndex = findPlaceholderEndIndex(result, startIndex);
 			if (endIndex != -1) {
+				// 获取开始索引和结束缩阴之间的占位符变量
 				String placeholder = result.substring(startIndex + this.placeholderPrefix.length(), endIndex);
 				String originalPlaceholder = placeholder;
+				// 添加到已解析占位符集中
 				if (visitedPlaceholders == null) {
 					visitedPlaceholders = new HashSet<>(4);
 				}
+				// 如果没有添加, 这说明出现了同名的嵌套占位符
+				// 主要出现在value的递归解析中
+				// 例子 "config", "${config}"
 				if (!visitedPlaceholders.add(originalPlaceholder)) {
 					throw new IllegalArgumentException(
 							"Circular placeholder reference '" + originalPlaceholder + "' in property definitions");
 				}
 				// Recursive invocation, parsing placeholders contained in the placeholder key.
+				// 递归调用parseStringValue, 用于解析占位符中的占位符
 				placeholder = parseStringValue(placeholder, placeholderResolver, visitedPlaceholders);
 				// Now obtain the value for the fully resolved key...
+				// 到这里标识递归完毕，占位符中没有占位符了
+				// 找到最底层的占位符变量之后, 调用 resolvePlaceholder 获取占位符变量对应的值 分析key
 				String propVal = placeholderResolver.resolvePlaceholder(placeholder);
+				// 如果值null, 并且默认值分割不为null, 尝试获取默认值
 				if (propVal == null && this.valueSeparator != null) {
+					// 分隔符的起始索引
 					int separatorIndex = placeholder.indexOf(this.valueSeparator);
 					if (separatorIndex != -1) {
+						// 实际的占位符变量
 						String actualPlaceholder = placeholder.substring(0, separatorIndex);
+						// 默认值
 						String defaultValue = placeholder.substring(separatorIndex + this.valueSeparator.length());
+						// 尝试从属性源中查找占位符变量对应的属性值
 						propVal = placeholderResolver.resolvePlaceholder(actualPlaceholder);
 						if (propVal == null) {
 							propVal = defaultValue;
 						}
 					}
 				}
+				// 如果存在值或存在默认值
 				if (propVal != null) {
 					// Recursive invocation, parsing placeholders contained in the
 					// previously resolved placeholder value.
+					// 继续调用递归parseStringValue, 用于分析占位符的值中的占位符, 分析value
 					propVal = parseStringValue(propVal, placeholderResolver, visitedPlaceholders);
+					// 占位符替换成获取到的值
 					result.replace(startIndex, endIndex + this.placeholderSuffix.length(), propVal);
 					if (logger.isTraceEnabled()) {
 						logger.trace("Resolved placeholder '" + placeholder + "'");
 					}
+					// 获取下一个占位符的起始索引
 					startIndex = result.indexOf(this.placeholderPrefix, startIndex + propVal.length());
 				}
+				// 如果值为null, 解析失败, 判断是不是忽略, 如果是的话，解析下一个占位符
 				else if (this.ignoreUnresolvablePlaceholders) {
 					// Proceed with unprocessed value.
 					startIndex = result.indexOf(this.placeholderPrefix, endIndex + this.placeholderSuffix.length());
 				}
+				// 如果不能忽略，那么抛出异常
 				else {
 					throw new IllegalArgumentException("Could not resolve placeholder '" +
 							placeholder + "'" + " in value \"" + value + "\"");
 				}
+				// 移除已经解析的占位符
 				visitedPlaceholders.remove(originalPlaceholder);
 			}
 			else {

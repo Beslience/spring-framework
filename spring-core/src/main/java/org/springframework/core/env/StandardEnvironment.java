@@ -53,11 +53,20 @@ package org.springframework.core.env;
  * @see org.springframework.web.context.support.StandardServletEnvironment
  */
 public class StandardEnvironment extends AbstractEnvironment {
+	// 重写了 customizePropertySources(), 在创建时就将JVM系统属性和系统环境属性存入资源容器中
 
-	/** System environment property source name: {@value}. */
+	/**
+	 * System environment property source name: {@value}.
+	 * 系统环境属性源名称
+	 * 内部属性键值对 通过System.getenv() 获取
+	 **/
 	public static final String SYSTEM_ENVIRONMENT_PROPERTY_SOURCE_NAME = "systemEnvironment";
 
-	/** JVM system properties property source name: {@value}. */
+	/**
+	 * JVM system properties property source name: {@value}.
+	 * JVM环境属性源名称
+	 * 内部属性键值对 通过System.getProperties() 获取
+	 **/
 	public static final String SYSTEM_PROPERTIES_PROPERTY_SOURCE_NAME = "systemProperties";
 
 
@@ -94,6 +103,10 @@ public class StandardEnvironment extends AbstractEnvironment {
 	 */
 	@Override
 	protected void customizePropertySources(MutablePropertySources propertySources) {
+		// 向资源列表加载 JVM系统属性和 系统环境属性
+
+		// 先加载 systemProperties 后加载 systemEnvironment
+		// spring 容器在遍历查找环境属性配置时会优先从System Properties
 		propertySources.addLast(
 				new PropertiesPropertySource(SYSTEM_PROPERTIES_PROPERTY_SOURCE_NAME, getSystemProperties()));
 		propertySources.addLast(

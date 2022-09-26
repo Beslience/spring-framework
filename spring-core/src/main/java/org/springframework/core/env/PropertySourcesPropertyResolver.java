@@ -30,6 +30,7 @@ import org.springframework.lang.Nullable;
  * @see AbstractEnvironment
  */
 public class PropertySourcesPropertyResolver extends AbstractPropertyResolver {
+	// 将 PropertySources 属性源集合作为属性来源, 通过顺序遍历每一个 PropertySources 属性源. 返回第一个返回key对应的value
 
 	@Nullable
 	private final PropertySources propertySources;
@@ -71,23 +72,34 @@ public class PropertySourcesPropertyResolver extends AbstractPropertyResolver {
 	@Override
 	@Nullable
 	protected String getPropertyAsRawString(String key) {
+		// 调用getProperty 方法
 		return getProperty(key, String.class, false);
 	}
 
+	// 遍历属性properties属性集合, 尝试获取属性源里key对应的value, 选用第一个不为null的匹配key的属性值
 	@Nullable
 	protected <T> T getProperty(String key, Class<T> targetValueType, boolean resolveNestedPlaceholders) {
+		// 如果属性源不为null, 在调用 getEnvironment方法获取环境对象的时候 propertySources 已经被初始化, 不会为null
+		// 并且通过customizePropertySources 方法设置了系统(SystemEnvironment)和JVM(systemProperties) 属性源
 		if (this.propertySources != null) {
+			// propertySources 实现了 Iterable 是一个可迭代对象
+			// 每一个列表元素代表一个属性源, 属性源相当于一个map, 存放的是属性键值对
 			for (PropertySource<?> propertySource : this.propertySources) {
 				if (logger.isTraceEnabled()) {
 					logger.trace("Searching for key '" + key + "' in PropertySource '" +
 							propertySource.getName() + "'");
 				}
+				// 获取属性原理key对应的value
 				Object value = propertySource.getProperty(key);
 				if (value != null) {
+					// 如果需要递归解析value中的签到占位符比如${}, 并且value属于String类型
 					if (resolveNestedPlaceholders && value instanceof String) {
+						// 递归解析
 						value = resolveNestedPlaceholders((String) value);
 					}
+					// 记录日志
 					logKeyFound(key, propertySource, value);
+					// 调用父类AbstractPropertyResolver : 如有必要, 将给定值转换位为指定的目标类型并返回
 					return convertValueIfNecessary(value, targetValueType);
 				}
 			}

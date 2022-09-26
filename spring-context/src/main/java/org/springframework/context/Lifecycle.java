@@ -48,6 +48,7 @@ package org.springframework.context;
  * @see org.springframework.scheduling.quartz.SchedulerFactoryBean
  */
 public interface Lifecycle {
+	// 监听容器生命周期时间, 比如start、stop信号
 
 	/**
 	 * Start this component.

@@ -69,6 +69,8 @@ package org.springframework.core.env;
  * @see org.springframework.context.support.AbstractApplicationContext#createEnvironment
  */
 public interface Environment extends PropertyResolver {
+	// properties: 可能来源外部properties配置文件、系统环境变量、JVM环境变量
+	// profiles  : 检测所使用的 profile
 
 	/**
 	 * Return the set of profiles explicitly made active for this environment. Profiles

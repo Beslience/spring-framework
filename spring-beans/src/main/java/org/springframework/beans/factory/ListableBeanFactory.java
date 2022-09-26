@@ -56,6 +56,7 @@ import org.springframework.lang.Nullable;
  * @see BeanFactoryUtils
  */
 public interface ListableBeanFactory extends BeanFactory {
+	// 提供一次性获取容器中的全部bean的功能
 
 	/**
 	 * Check if this bean factory contains a bean definition with the given name.

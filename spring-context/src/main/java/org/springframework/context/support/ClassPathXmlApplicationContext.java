@@ -50,6 +50,9 @@ import org.springframework.util.Assert;
  * @see GenericApplicationContext
  */
 public class ClassPathXmlApplicationContext extends AbstractXmlApplicationContext {
+	// 从程序路径加载xml配置文件启动Spring
+	// 加载项目的classpath 路径下面的配置文件, 可以不加上"classpath:" 前缀; 使用绝对路径需要加上"file:"前缀
+	// 提供简单的构造函数, 具体功能由父类实现
 
 	@Nullable
 	private Resource[] configResources;
@@ -138,9 +141,12 @@ public class ClassPathXmlApplicationContext extends AbstractXmlApplicationContex
 			String[] configLocations, boolean refresh, @Nullable ApplicationContext parent)
 			throws BeansException {
 
+		// 设置父上文容器(默认为null), 设置resource 资源加载器和解析器
 		super(parent);
+		// 设置本地配置文件信息, 处理替换${} 占位符
 		setConfigLocations(configLocations);
 		if (refresh) {
+			// 刷新上下文, 真正创建容器, 核心方法
 			refresh();
 		}
 	}

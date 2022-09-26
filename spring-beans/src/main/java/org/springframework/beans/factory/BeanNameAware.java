@@ -34,6 +34,7 @@ package org.springframework.beans.factory;
  * @see InitializingBean
  */
 public interface BeanNameAware extends Aware {
+	// 用于获取容器中bean的名称
 
 	/**
 	 * Set the name of the bean in the bean factory that created this bean.

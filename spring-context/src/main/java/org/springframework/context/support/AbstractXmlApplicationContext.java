@@ -44,6 +44,8 @@ import org.springframework.lang.Nullable;
  * @see org.springframework.beans.factory.xml.XmlBeanDefinitionReader
  */
 public abstract class AbstractXmlApplicationContext extends AbstractRefreshableConfigApplicationContext {
+	// 解析bean的定义
+	// AbstractXmlApplicationContext 是 ClassPathXmlApplicationContext 的父类
 
 	private boolean validating = true;
 
@@ -59,6 +61,7 @@ public abstract class AbstractXmlApplicationContext extends AbstractRefreshableC
 	 * @param parent the parent context
 	 */
 	public AbstractXmlApplicationContext(@Nullable ApplicationContext parent) {
+		// 调用父类 AbstractRefreshableConfigApplicationContext 的构造器
 		super(parent);
 	}
 

@@ -28,6 +28,7 @@ import org.springframework.lang.Nullable;
  * @see PropertySourcesPropertyResolver
  */
 public interface PropertyResolver {
+	// 用于对底层属性源进行属性解析。提供了通过属性key获取睡醒value以及解析占位符等基本功能
 
 	/**
 	 * Return whether the given property key is available for resolution,

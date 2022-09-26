@@ -53,6 +53,8 @@ import org.springframework.util.StringUtils;
  * @see StandardEnvironment
  */
 public abstract class AbstractEnvironment implements ConfigurableEnvironment {
+	// 为子类留下可扩展自定义属性来源的 customizeProperties
+	// 提供profile 以及系统相关属性的属性名的定义，以及提供了相应的存储容器
 
 	/**
 	 * System property that instructs Spring to ignore system environment variables,
@@ -63,6 +65,8 @@ public abstract class AbstractEnvironment implements ConfigurableEnvironment {
 	 * log warnings from {@code getenv} calls coming from Spring.
 	 * @see #suppressGetenvAccess()
 	 */
+	// 是否不允许Spring访问系统环境变量的属性名称
+	// 为true: 不允许通过System.getenv() 获取系统环境变量
 	public static final String IGNORE_GETENV_PROPERTY_NAME = "spring.getenv.ignore";
 
 	/**
@@ -74,6 +78,7 @@ public abstract class AbstractEnvironment implements ConfigurableEnvironment {
 	 * {@code SPRING_PROFILES_ACTIVE}.
 	 * @see ConfigurableEnvironment#setActiveProfiles
 	 */
+	// 是设置为指定活动配置文件的属性名称
 	public static final String ACTIVE_PROFILES_PROPERTY_NAME = "spring.profiles.active";
 
 	/**
@@ -85,6 +90,7 @@ public abstract class AbstractEnvironment implements ConfigurableEnvironment {
 	 * {@code SPRING_PROFILES_DEFAULT}.
 	 * @see ConfigurableEnvironment#setDefaultProfiles
 	 */
+	// 要设置为指定默认情况下处于活动状态的配置文件的属性名称
 	public static final String DEFAULT_PROFILES_PROPERTY_NAME = "spring.profiles.default";
 
 	/**
@@ -97,17 +103,26 @@ public abstract class AbstractEnvironment implements ConfigurableEnvironment {
 	 * @see AbstractEnvironment#DEFAULT_PROFILES_PROPERTY_NAME
 	 * @see AbstractEnvironment#ACTIVE_PROFILES_PROPERTY_NAME
 	 */
+	// 如果未显示设置默认配置文件名称, 并且未显示设置活动配置文件名称, 则默认情况下使用"default" 作为自动激活配置文件名
 	protected static final String RESERVED_DEFAULT_PROFILE_NAME = "default";
 
 
 	protected final Log logger = LogFactory.getLog(getClass());
 
+	// 活动profile名集合
 	private final Set<String> activeProfiles = new LinkedHashSet<>();
 
+	// 默认profile名集合
 	private final Set<String> defaultProfiles = new LinkedHashSet<>(getReservedDefaultProfiles());
 
+	/**
+	 * 可修改属性源, 可看做一个列表，用来存放 PropertySource
+	 */
 	private final MutablePropertySources propertySources;
 
+	/**
+	 * 可配置的属性解析器, 实际类型为 PropertySourcesPropertyResolver 类型, 用于解析属性源中的属性
+	 */
 	private final ConfigurablePropertyResolver propertyResolver;
 
 
@@ -239,6 +254,7 @@ public abstract class AbstractEnvironment implements ConfigurableEnvironment {
 	 * @see org.springframework.context.ApplicationContextInitializer
 	 */
 	protected void customizePropertySources(MutablePropertySources propertySources) {
+		// 该方法被子类 StandardEnvironment 重写，因此会调用子类重写的方法
 	}
 
 	/**
@@ -585,6 +601,8 @@ public abstract class AbstractEnvironment implements ConfigurableEnvironment {
 
 	@Override
 	public String resolveRequiredPlaceholders(String text) throws IllegalArgumentException {
+		// 继续调用属性解析器的 resolveRequiredPlaceholders() 替换给定文本中的 ${} 占位符
+		// 设置了JVM和系统属性源
 		return this.propertyResolver.resolveRequiredPlaceholders(text);
 	}
 

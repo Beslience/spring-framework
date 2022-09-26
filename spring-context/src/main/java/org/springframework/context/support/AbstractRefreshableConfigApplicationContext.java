@@ -38,7 +38,11 @@ import org.springframework.util.StringUtils;
  */
 public abstract class AbstractRefreshableConfigApplicationContext extends AbstractRefreshableApplicationContext
 		implements BeanNameAware, InitializingBean {
+	// 指定配置文件加载路径
 
+	/**
+	 * 配置文件路径字符串数组
+	 */
 	@Nullable
 	private String[] configLocations;
 
@@ -56,6 +60,7 @@ public abstract class AbstractRefreshableConfigApplicationContext extends Abstra
 	 * @param parent the parent context
 	 */
 	public AbstractRefreshableConfigApplicationContext(@Nullable ApplicationContext parent) {
+		// 调用父类 AbstractRefreshableApplicationContext 构造器
 		super(parent);
 	}
 
@@ -74,10 +79,12 @@ public abstract class AbstractRefreshableConfigApplicationContext extends Abstra
 	 * <p>If not set, the implementation may use a default as appropriate.
 	 */
 	public void setConfigLocations(@Nullable String... locations) {
+		// 路径不为空
 		if (locations != null) {
 			Assert.noNullElements(locations, "Config locations must not be null");
 			this.configLocations = new String[locations.length];
 			for (int i = 0; i < locations.length; i++) {
+				// 取出每一个配置路径字符串, 尝试替换字符串中的环境变量占位符
 				this.configLocations[i] = resolvePath(locations[i]).trim();
 			}
 		}
@@ -122,6 +129,8 @@ public abstract class AbstractRefreshableConfigApplicationContext extends Abstra
 	 * @see org.springframework.core.env.Environment#resolveRequiredPlaceholders(String)
 	 */
 	protected String resolvePath(String path) {
+		// 获取当前上下文的可配置环境变量对象
+		// resolveRequiredPlaceholders 替换字符串path 的 ${} 占位符
 		return getEnvironment().resolveRequiredPlaceholders(path);
 	}
 

@@ -46,6 +46,7 @@ import org.springframework.util.StringUtils;
  * @see org.springframework.context.support.ClassPathXmlApplicationContext
  */
 public class DefaultResourceLoader implements ResourceLoader {
+	// ResourceLoader 默认实现, 用来获取资源
 
 	@Nullable
 	private ClassLoader classLoader;

@@ -32,6 +32,7 @@ package org.springframework.context;
  */
 @FunctionalInterface
 public interface ApplicationEventPublisher {
+	// 事件发布
 
 	/**
 	 * Notify all <strong>matching</strong> listeners registered with this

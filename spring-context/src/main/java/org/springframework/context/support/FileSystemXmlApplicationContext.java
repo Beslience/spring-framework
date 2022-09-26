@@ -54,6 +54,8 @@ import org.springframework.lang.Nullable;
  * @see GenericApplicationContext
  */
 public class FileSystemXmlApplicationContext extends AbstractXmlApplicationContext {
+	// 从系统路径加载xml文件启动Spring
+	// 默认是记在文件系统下面的配置文件 "file:"
 
 	/**
 	 * Create a new FileSystemXmlApplicationContext for bean-style configuration.

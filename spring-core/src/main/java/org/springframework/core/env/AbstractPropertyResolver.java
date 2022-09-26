@@ -40,6 +40,7 @@ import org.springframework.util.SystemPropertyUtils;
  * @since 3.1
  */
 public abstract class AbstractPropertyResolver implements ConfigurablePropertyResolver {
+	// 用于针对任何基础属性源解析属性的抽象类，定义了默认的占位符属性${....}
 
 	protected final Log logger = LogFactory.getLog(getClass());
 
@@ -204,9 +205,11 @@ public abstract class AbstractPropertyResolver implements ConfigurablePropertyRe
 
 	@Override
 	public String resolveRequiredPlaceholders(String text) throws IllegalArgumentException {
+		// 创建一个属性占位符解析 PropertyPlaceholderHelper
 		if (this.strictHelper == null) {
 			this.strictHelper = createPlaceholderHelper(false);
 		}
+		// 调用 doResolvePlaceholders 解析占位符
 		return doResolvePlaceholders(text, this.strictHelper);
 	}
 
@@ -230,11 +233,26 @@ public abstract class AbstractPropertyResolver implements ConfigurablePropertyRe
 				resolvePlaceholders(value) : resolveRequiredPlaceholders(value));
 	}
 
+	/**
+	 * 创建占位符助手
+	 *
+	 * @param ignoreUnresolvablePlaceholders 是否忽略无法解析占位符
+	 * @return {@link PropertyPlaceholderHelper}
+	 */
 	private PropertyPlaceholderHelper createPlaceholderHelper(boolean ignoreUnresolvablePlaceholders) {
+		// 传递默认占位符格式 前缀: ${  后缀: } 占位符变量和默认值的分隔符 :
+		// ignoreUnresolvablePlaceholders 是否忽略无法解析占位符
 		return new PropertyPlaceholderHelper(this.placeholderPrefix, this.placeholderSuffix,
 				this.valueSeparator, ignoreUnresolvablePlaceholders);
 	}
 
+	/**
+	 * 实际上内部调用属性占位符的解析
+	 *
+	 * @param text   文本
+	 * @param helper 助手
+	 * @return {@link String}
+	 */
 	private String doResolvePlaceholders(String text, PropertyPlaceholderHelper helper) {
 		return helper.replacePlaceholders(text, this::getPropertyAsRawString);
 	}
@@ -250,18 +268,24 @@ public abstract class AbstractPropertyResolver implements ConfigurablePropertyRe
 	@SuppressWarnings("unchecked")
 	@Nullable
 	protected <T> T convertValueIfNecessary(Object value, @Nullable Class<T> targetType) {
+		// 如果指定目标类型为null, 返回原始值
 		if (targetType == null) {
 			return (T) value;
 		}
+		// 获取Spring 转换服务对象
 		ConversionService conversionServiceToUse = this.conversionService;
+		// 如果为null
 		if (conversionServiceToUse == null) {
 			// Avoid initialization of shared DefaultConversionService if
 			// no standard type conversion is needed in the first place...
+			// 是否等于给定类型，一般都不相等，除了字符串类型
 			if (ClassUtils.isAssignableValue(targetType, value)) {
 				return (T) value;
 			}
+			// 调用 DefaultConversionService 的 getSharedInstance 获取共享的转换服务实例
 			conversionServiceToUse = DefaultConversionService.getSharedInstance();
 		}
+		// 调用 getSharedInstance 的 convert 将会查找合适的转换器, 并尝试转换
 		return conversionServiceToUse.convert(value, targetType);
 	}
 

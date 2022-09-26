@@ -135,6 +135,7 @@ import org.springframework.util.ReflectionUtils;
  */
 public abstract class AbstractApplicationContext extends DefaultResourceLoader
 		implements ConfigurableApplicationContext {
+	// 抽象应用程序上下文, 大部分的IOC容器初始化工作, 比如refresh(), 也提供了可扩展方法给子类实现
 
 	/**
 	 * Name of the MessageSource bean in the factory.
@@ -244,6 +245,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	 * Create a new AbstractApplicationContext with no parent.
 	 */
 	public AbstractApplicationContext() {
+		// resourcePatternResolver 获取一个资源模式解析器
 		this.resourcePatternResolver = getResourcePatternResolver();
 	}
 
@@ -252,7 +254,9 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	 * @param parent the parent context
 	 */
 	public AbstractApplicationContext(@Nullable ApplicationContext parent) {
+		// 创建一个没有父级的新抽象应用程序上下文, 并设置resourcePatternResolver
 		this();
+		// 设置父级上下文
 		setParent(parent);
 	}
 
@@ -484,6 +488,8 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	 * @see org.springframework.core.io.support.PathMatchingResourcePatternResolver
 	 */
 	protected ResourcePatternResolver getResourcePatternResolver() {
+		// 将 AbstractApplicationContext 自己作为 ResourceLoader 传递 PathMatchingResourcePatternResolver
+		// 返回一个 PathMatchingResourcePatternResolver 实例对象, 提供了以 classpath 开头的 Ant 路径通配符加载获得资源resource
 		return new PathMatchingResourcePatternResolver(this);
 	}
 
@@ -501,11 +507,15 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	 * @see ConfigurableEnvironment#merge(ConfigurableEnvironment)
 	 */
 	@Override
-	public void setParent(@Nullable ApplicationContext parent) {
+	public void  setParent(@Nullable ApplicationContext parent) {
+		// 设置父容器
 		this.parent = parent;
 		if (parent != null) {
+			// 获取父容器的环境对象
 			Environment parentEnvironment = parent.getEnvironment();
 			if (parentEnvironment instanceof ConfigurableEnvironment) {
+				// 获取子容器自己的环境对象
+				// 调用merge() 将父级容器运行环境合并到当前容器运行环境
 				getEnvironment().merge((ConfigurableEnvironment) parentEnvironment);
 			}
 		}

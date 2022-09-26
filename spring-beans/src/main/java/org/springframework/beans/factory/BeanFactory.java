@@ -118,6 +118,7 @@ import org.springframework.lang.Nullable;
  * @see org.springframework.beans.factory.support.RootBeanDefinition#getDestroyMethodName
  */
 public interface BeanFactory {
+	// IOC容器超级接口: 定义对了单个bean的获取, 对bean的作用域判断, 获取bean类型, 获取bean别名的功能
 
 	/**
 	 * Used to dereference a {@link FactoryBean} instance and distinguish it from

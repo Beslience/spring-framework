@@ -54,6 +54,7 @@ import org.springframework.core.io.ResourceLoader;
  * @see org.springframework.context.ResourceLoaderAware
  */
 public interface ResourcePatternResolver extends ResourceLoader {
+	// 获取资源的超级接口
 
 	/**
 	 * Pseudo URL prefix for all matching resources from the class path: "classpath*:"

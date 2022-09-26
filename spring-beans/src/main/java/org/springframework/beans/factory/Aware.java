@@ -33,5 +33,5 @@ package org.springframework.beans.factory;
  * @since 3.1
  */
 public interface Aware {
-
+	// 感知接口, 用于辅助范文IOC容器的资源。 XXAware: 从容器获取XX资源
 }

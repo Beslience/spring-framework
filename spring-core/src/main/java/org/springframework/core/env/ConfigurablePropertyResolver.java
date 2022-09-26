@@ -29,6 +29,8 @@ import org.springframework.lang.Nullable;
  * @since 3.1
  */
 public interface ConfigurablePropertyResolver extends PropertyResolver {
+	// 扩展 PropertyResolver 功能, 如设置占位符的格式
+	// 用来转换获取到的属性value的类型等功能
 
 	/**
 	 * Return the {@link ConfigurableConversionService} used when performing type

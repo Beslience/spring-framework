@@ -38,6 +38,7 @@ import org.springframework.lang.Nullable;
  * @see org.springframework.context.support.ReloadableResourceBundleMessageSource
  */
 public interface MessageSource {
+	// 国际化消息
 
 	/**
 	 * Try to resolve the message. Return default message if no message was found.

@@ -43,6 +43,7 @@ import org.springframework.lang.Nullable;
  * @since 03.11.2003
  */
 public interface ConfigurableApplicationContext extends ApplicationContext, Lifecycle, Closeable {
+	// 提供配置应用上下文(ApplicationContext)
 
 	/**
 	 * Any number of these characters are considered delimiters between
