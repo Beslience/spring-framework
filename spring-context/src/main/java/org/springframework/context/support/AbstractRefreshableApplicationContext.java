@@ -64,9 +64,22 @@ import org.springframework.lang.Nullable;
  */
 public abstract class AbstractRefreshableApplicationContext extends AbstractApplicationContext {
 
+	/**
+	 * 允许bean定义覆盖
+	 * 在registerBeanDefinition 注册bean定义的时候判断是否允许同名的 beanDefinition 覆盖, 默认为true, Springboot 默认不允许false
+	 * 1) 针对xml 配置的不同 <beans/> 的同名bean, 如果true 则同名bean 允许覆盖, false抛出异常
+	 * 2) 如果在同一< beans/>配置中具有重复的id 或 name，或者对于外部类/静态内部类使用注解配置时的使用了相同的name，在解析时候会报错；如果是普通内部类使用了注解配置，
+	 * 或者采用@Bean配置，则允许bean的覆盖，不会报错。这些特性与该属性无关！
+	 */
 	@Nullable
 	private Boolean allowBeanDefinitionOverriding;
 
+	/**
+	 * 允许循环引用
+	 * 自动处理setter方法和注解属性的循环依赖注入
+	 * 但不能自动处理构造器以及dependsOn 的循环依赖注入
+	 * 并且要求循环依赖的bean 不能是 prototye
+	 */
 	@Nullable
 	private Boolean allowCircularReferences;
 
@@ -120,15 +133,24 @@ public abstract class AbstractRefreshableApplicationContext extends AbstractAppl
 	 */
 	@Override
 	protected final void refreshBeanFactory() throws BeansException {
+		// beanFactory 是否为null
 		if (hasBeanFactory()) {
+			// 销毁 beanFactory 中所有的 Bean
 			destroyBeans();
+			// 关闭 beanFactory
 			closeBeanFactory();
 		}
 		try {
+			// 创建一个新的 DefaultListableBeanFactory 实例
 			DefaultListableBeanFactory beanFactory = createBeanFactory();
+			// 设置序列化ID, 允许此 beanFactory 进行序列化以及反序列化
 			beanFactory.setSerializationId(getId());
+			// 设置beanFactory 相关属性, 包括是否允许覆盖同名称的不同定义的对象 以及是否允许循环依赖等
 			customizeBeanFactory(beanFactory);
+			// 核心方法,解析xml文件 加载beanDefinition
+			// ClassPathXmlApplicationContext 的父类实现 AbstractXmlApplicationContext - loadBeanDefinitions
 			loadBeanDefinitions(beanFactory);
+			// 赋值
 			this.beanFactory = beanFactory;
 		}
 		catch (IOException ex) {
@@ -145,6 +167,9 @@ public abstract class AbstractRefreshableApplicationContext extends AbstractAppl
 		super.cancelRefresh(ex);
 	}
 
+	/**
+	 * 关闭容器上下文的bean工厂, 设置beanFactory, beanFactory 将会被GC回收
+	 */
 	@Override
 	protected final void closeBeanFactory() {
 		DefaultListableBeanFactory beanFactory = this.beanFactory;
@@ -164,7 +189,9 @@ public abstract class AbstractRefreshableApplicationContext extends AbstractAppl
 
 	@Override
 	public final ConfigurableListableBeanFactory getBeanFactory() {
+		// 获取当前容器内部的 beanFactory
 		DefaultListableBeanFactory beanFactory = this.beanFactory;
+		// 如果 beanFactory 为null, 抛出异常
 		if (beanFactory == null) {
 			throw new IllegalStateException("BeanFactory not initialized or already closed - " +
 					"call 'refresh' before accessing beans via the ApplicationContext");
@@ -195,6 +222,9 @@ public abstract class AbstractRefreshableApplicationContext extends AbstractAppl
 	 * @see org.springframework.beans.factory.support.DefaultListableBeanFactory#setAllowRawInjectionDespiteWrapping
 	 */
 	protected DefaultListableBeanFactory createBeanFactory() {
+		// 根据父工厂创建一个beanFactory
+		// 非web环境 工厂的父工厂默认为null
+		// web环境下, 工厂的父工厂是Spring MVC 的父工厂
 		return new DefaultListableBeanFactory(getInternalParentBeanFactory());
 	}
 

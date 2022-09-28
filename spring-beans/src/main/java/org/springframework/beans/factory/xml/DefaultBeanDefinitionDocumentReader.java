@@ -93,6 +93,7 @@ public class DefaultBeanDefinitionDocumentReader implements BeanDefinitionDocume
 	@Override
 	public void registerBeanDefinitions(Document doc, XmlReaderContext readerContext) {
 		this.readerContext = readerContext;
+		// 解析doc 根节点, 并解析到的bean定义注册到注册表中
 		doRegisterBeanDefinitions(doc.getDocumentElement());
 	}
 
@@ -125,16 +126,24 @@ public class DefaultBeanDefinitionDocumentReader implements BeanDefinitionDocume
 		// the new (child) delegate with a reference to the parent for fallback purposes,
 		// then ultimately reset this.delegate back to its original (parent) reference.
 		// this behavior emulates a stack of delegates without actually necessitating one.
+
+		// <beans/> 标签可以嵌套, 也有父子关系, 可能进行递归调用
 		BeanDefinitionParserDelegate parent = this.delegate;
+		// 根据root、parent创建新的delegate, 同时解析 <beans/> 根标签的属性
 		this.delegate = createDelegate(getReaderContext(), root, parent);
 
+		// 是否是默认命名空间 http://www.springframework.org/schema/beans 标签
 		if (this.delegate.isDefaultNamespace(root)) {
+			// 获取当前<beans/> 的profile 属性值
 			String profileSpec = root.getAttribute(PROFILE_ATTRIBUTE);
+			// 如果指定了profile属性
 			if (StringUtils.hasText(profileSpec)) {
 				String[] specifiedProfiles = StringUtils.tokenizeToStringArray(
 						profileSpec, BeanDefinitionParserDelegate.MULTI_VALUE_ATTRIBUTE_DELIMITERS);
 				// We cannot use Profiles.of(...) since profile expressions are not supported
 				// in XML config. See SPR-12458 for details.
+				// 如果环境变量中指定活动的profile 没有包含当前<beans/> 标签的profile属性值
+				// 那么不加字啊这个<beans/> 标签下的bean定义直接返回
 				if (!getReaderContext().getEnvironment().acceptsProfiles(specifiedProfiles)) {
 					if (logger.isDebugEnabled()) {
 						logger.debug("Skipped XML bean definition file due to specified profiles [" + profileSpec +
@@ -145,8 +154,12 @@ public class DefaultBeanDefinitionDocumentReader implements BeanDefinitionDocume
 			}
 		}
 
+		// 如果有, 那么继续解析
+		// 在开始处理 bean 定义之前的扩展点位, 默认实现为空, 子类可以重写此方法
 		preProcessXml(root);
+		// 真正的从根元素开始进行bean定义的解析
 		parseBeanDefinitions(root, this.delegate);
+		// 在完成 bean 定义处理后的扩展点位.  默认实现为空, 子类可以重写此方法
 		postProcessXml(root);
 
 		this.delegate = parent;
@@ -155,8 +168,11 @@ public class DefaultBeanDefinitionDocumentReader implements BeanDefinitionDocume
 	protected BeanDefinitionParserDelegate createDelegate(
 			XmlReaderContext readerContext, Element root, @Nullable BeanDefinitionParserDelegate parentDelegate) {
 
+		// 创建解析器
 		BeanDefinitionParserDelegate delegate = new BeanDefinitionParserDelegate(readerContext);
+		// 设置解析器默认值, 即解析<beans/> 根标签的属性
 		delegate.initDefaults(root, parentDelegate);
+		// 返回解析器
 		return delegate;
 	}
 
@@ -166,20 +182,28 @@ public class DefaultBeanDefinitionDocumentReader implements BeanDefinitionDocume
 	 * @param root the DOM root element of the document
 	 */
 	protected void parseBeanDefinitions(Element root, BeanDefinitionParserDelegate delegate) {
+		// 从给定的<beans/> 根标签元素中读取子标签并解
+		// 如果属于默认命名空间下的标签 <import/> <alias/> <bean/> <beans/>
 		if (delegate.isDefaultNamespace(root)) {
 			NodeList nl = root.getChildNodes();
 			for (int i = 0; i < nl.getLength(); i++) {
 				Node node = nl.item(i);
+				// 标签之间的空白换行符号\n、标签之间被注释的语句 也会算作一个Node节点 -> DeferredTextImpl
+				// 这里需要筛选出真正需要被解析的标签元素 即Element -> DeferredElementNSImpl
+				// 因此XML中标签之间的注释也会增加遍历以及判断成本
 				if (node instanceof Element ele) {
+					// 如果属于默认命名空间下的标签 <import/> <alias/> <bean/> <beans/>
 					if (delegate.isDefaultNamespace(ele)) {
 						parseDefaultElement(ele, delegate);
 					}
+					// 其他命名名空间的扩展标签、 <mvc/> <task/> <context/> <aop/>
 					else {
 						delegate.parseCustomElement(ele);
 					}
 				}
 			}
 		}
+		// 其他命名名空间的扩展标签、 <mvc/> <task/> <context/> <aop/>
 		else {
 			delegate.parseCustomElement(root);
 		}

@@ -174,6 +174,8 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 	private volatile List<String> beanDefinitionNames = new ArrayList<>(256);
 
 	/** List of names of manually registered singletons, in registration order. */
+	// 用于按注册顺序手动注册的单例 beanName 列表缓存
+	// 在注册bean 定义完成之后, Spring会手动注册一些bean, 比如 envrionment systemProperties
 	private volatile Set<String> manualSingletonNames = new LinkedHashSet<>(16);
 
 	/** Cached array of bean definition names in case of frozen configuration. */
@@ -196,6 +198,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 	 * @param parentBeanFactory the parent BeanFactory
 	 */
 	public DefaultListableBeanFactory(@Nullable BeanFactory parentBeanFactory) {
+		// 调用 AbstractAutowireCapableBeanFactory 的构造器
 		super(parentBeanFactory);
 	}
 
@@ -1115,18 +1118,28 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 
 	@Override
 	public void destroySingletons() {
+		// 调用父类的销毁单例bean, 并且进行销毁回调
 		super.destroySingletons();
+		// 清空 DefaultListableBeanFactory的 manualSingletonNames 集合
+		// 即清空所有手动注册bean, 调用registerSingleton
 		updateManualSingletonNames(Set::clear, set -> !set.isEmpty());
+		// 删除有关类型映射的任何缓存, 及清空 allBeanNamesByType 和 singletonBeanNamesByType 集合
 		clearByTypeCache();
 	}
 
 	@Override
 	public void destroySingleton(String beanName) {
+		// 调用父类
 		super.destroySingleton(beanName);
+		//
 		removeManualSingletonName(beanName);
 		clearByTypeCache();
 	}
 
+	/**
+	 * 当前的beanName 从 manualSingletonNames 缓存中删除
+	 *
+	 */
 	private void removeManualSingletonName(String beanName) {
 		updateManualSingletonNames(set -> set.remove(beanName), set -> set.contains(beanName));
 	}
@@ -1138,6 +1151,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 	 * (if this condition does not apply, the action can be skipped)
 	 */
 	private void updateManualSingletonNames(Consumer<Set<String>> action, Predicate<Set<String>> condition) {
+		// 如果已经有其他bean实例初始化了
 		if (hasBeanCreationStarted()) {
 			// Cannot modify startup-time collection elements anymore (for stable iteration)
 			synchronized (this.beanDefinitionMap) {

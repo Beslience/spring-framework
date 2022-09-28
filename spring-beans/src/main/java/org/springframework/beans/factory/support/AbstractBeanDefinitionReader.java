@@ -83,6 +83,7 @@ public abstract class AbstractBeanDefinitionReader implements BeanDefinitionRead
 	 */
 	protected AbstractBeanDefinitionReader(BeanDefinitionRegistry registry) {
 		Assert.notNull(registry, "BeanDefinitionRegistry must not be null");
+		// 初始化 registry, 这里实际上是创建的 DefaultListableBeanFactory 实例
 		this.registry = registry;
 
 		// Determine ResourceLoader to use.
@@ -90,6 +91,7 @@ public abstract class AbstractBeanDefinitionReader implements BeanDefinitionRead
 			this.resourceLoader = (ResourceLoader) this.registry;
 		}
 		else {
+			// 将会创建一个 PathMatchingResourcePatternResolver, 支持模式匹配
 			this.resourceLoader = new PathMatchingResourcePatternResolver();
 		}
 
@@ -192,6 +194,8 @@ public abstract class AbstractBeanDefinitionReader implements BeanDefinitionRead
 
 	@Override
 	public int loadBeanDefinitions(String location) throws BeanDefinitionStoreException {
+		// 从指定的资源路径加载 bean 定义
+		// 该路径字符串也可以是一个模式匹配, 前提是此beanDefinitionReader的 resourceLoader 是 ResourcePatternResolver
 		return loadBeanDefinitions(location, null);
 	}
 
@@ -211,16 +215,24 @@ public abstract class AbstractBeanDefinitionReader implements BeanDefinitionRead
 	 * @see #loadBeanDefinitions(org.springframework.core.io.Resource[])
 	 */
 	public int loadBeanDefinitions(String location, @Nullable Set<Resource> actualResources) throws BeanDefinitionStoreException {
+		// 获取 resourceLoader 用来加载资源
 		ResourceLoader resourceLoader = getResourceLoader();
 		if (resourceLoader == null) {
 			throw new BeanDefinitionStoreException(
 					"Cannot load bean definitions from location [" + location + "]: no ResourceLoader available");
 		}
 
+		/**
+		 * 支持Ant模式匹配
+		 */
 		if (resourceLoader instanceof ResourcePatternResolver) {
 			// Resource pattern matching available.
 			try {
+				// 调用 resourceLoader 将给定的路径xml文件资源解析为 Resource资源对象组
+				// 通常一个路径对应一个xml文件
+				// 但是如果路径有模式匹配, 匹配到多个资源文件, 则resources 可能有多个resources 元素
 				Resource[] resources = ((ResourcePatternResolver) resourceLoader).getResources(location);
+				// 调用回 loadBeanDefinitions 但是参数是 resources 资源
 				int count = loadBeanDefinitions(resources);
 				if (actualResources != null) {
 					Collections.addAll(actualResources, resources);
@@ -235,9 +247,12 @@ public abstract class AbstractBeanDefinitionReader implements BeanDefinitionRead
 						"Could not resolve bean definition resource pattern [" + location + "]", ex);
 			}
 		}
+		// 不支持资源 Ant模式匹配
 		else {
 			// Can only load single resources by absolute URL.
+			// 通过绝对 URL 路径加载单个资源
 			Resource resource = resourceLoader.getResource(location);
+			// 根据resource 加载bean
 			int count = loadBeanDefinitions(resource);
 			if (actualResources != null) {
 				actualResources.add(resource);
@@ -252,6 +267,7 @@ public abstract class AbstractBeanDefinitionReader implements BeanDefinitionRead
 	@Override
 	public int loadBeanDefinitions(String... locations) throws BeanDefinitionStoreException {
 		Assert.notNull(locations, "Location array must not be null");
+		// bean 定义数量
 		int count = 0;
 		for (String location : locations) {
 			count += loadBeanDefinitions(location);

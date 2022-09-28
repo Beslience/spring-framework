@@ -176,14 +176,25 @@ class DisposableBeanAdapter implements DisposableBean, Runnable, Serializable {
 		destroy();
 	}
 
+	/**
+	 * 销毁回调 顺序如下
+	 * @PreDestroy 注解标注的方法回调
+	 * DispoableBean 接口的 destroy 方法回调
+	 * XML的 destroy-method 属性指定或者 Spring自动推断方法回调
+	 *
+	 * 同一个方法不会重复调用
+	 */
 	@Override
 	public void destroy() {
+		// @PreDestroy 注解标注的方法回调
+		// 通过 DestructionAwareBeanPostProcessor 后置处理器的 postProcessBeforeDestruction 方法进行回调
 		if (!CollectionUtils.isEmpty(this.beanPostProcessors)) {
 			for (DestructionAwareBeanPostProcessor processor : this.beanPostProcessors) {
 				processor.postProcessBeforeDestruction(this.bean, this.beanName);
 			}
 		}
 
+		// DispoableBean 接口的 destroy 方法回调
 		if (this.invokeDisposableBean) {
 			if (logger.isTraceEnabled()) {
 				logger.trace("Invoking destroy() on bean with name '" + this.beanName + "'");
@@ -219,6 +230,7 @@ class DisposableBeanAdapter implements DisposableBean, Runnable, Serializable {
 				}
 			}
 		}
+		// XML的 destroy-method 属性指定或者 Spring自动推断方法回调
 		else if (this.destroyMethod != null) {
 			invokeCustomDestroyMethod(this.destroyMethod);
 		}

@@ -69,6 +69,8 @@ public class DefaultDocumentLoader implements DocumentLoader {
 	public Document loadDocument(InputSource inputSource, EntityResolver entityResolver,
 			ErrorHandler errorHandler, int validationMode, boolean namespaceAware) throws Exception {
 
+		// Spring 使用的XML 解析方式是Jaxp解析器下的SAX解析, 不需要额外的jar包 涉及类的比如Document、Element 位于JDK的rt.jar
+		// Jaxp解析器还有dom解析方式, dom4j 需要额外的jar包
 		DocumentBuilderFactory factory = createDocumentBuilderFactory(validationMode, namespaceAware);
 		if (logger.isTraceEnabled()) {
 			logger.trace("Using JAXP provider [" + factory.getClass().getName() + "]");

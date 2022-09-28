@@ -146,6 +146,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 	 * Dependency interfaces to ignore on dependency check and autowire, as Set of
 	 * Class objects. By default, only the BeanFactory interface is ignored.
 	 */
+	// 要忽略setter 自动注入的类型的列表
 	private final Set<Class<?>> ignoredDependencyInterfaces = new HashSet<>();
 
 	/**
@@ -169,7 +170,10 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 	 * Create a new AbstractAutowireCapableBeanFactory.
 	 */
 	public AbstractAutowireCapableBeanFactory() {
+		// 调用父类 AbstractBeanFactory 构造器
 		super();
+		// 忽略给定依赖接口的setting 自动装配, 主要是 Aware 接口
+		// 如果存在接口A, 类Aimpl 实现A，添加忽略A后, Aimpl 将忽略和A中相同的 setter 方法的自动注入
 		ignoreDependencyInterface(BeanNameAware.class);
 		ignoreDependencyInterface(BeanFactoryAware.class);
 		ignoreDependencyInterface(BeanClassLoaderAware.class);
@@ -186,6 +190,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 	 * @param parentBeanFactory parent bean factory, or {@code null} if none
 	 */
 	public AbstractAutowireCapableBeanFactory(@Nullable BeanFactory parentBeanFactory) {
+		// 将会初始化相关属性容器
 		this();
 		setParentBeanFactory(parentBeanFactory);
 	}
