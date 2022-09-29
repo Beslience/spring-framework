@@ -70,7 +70,9 @@ public abstract class NamespaceHandlerSupport implements NamespaceHandler {
 	@Override
 	@Nullable
 	public BeanDefinition parse(Element element, ParserContext parserContext) {
+		// 查找改element 标签元素对应的 BeanDefinitionParser
 		BeanDefinitionParser parser = findParserForElement(element, parserContext);
+		// BeanDefinitionParser 调用 parse 返回 BeanDefinition
 		return (parser != null ? parser.parse(element, parserContext) : null);
 	}
 
@@ -80,7 +82,9 @@ public abstract class NamespaceHandlerSupport implements NamespaceHandler {
 	 */
 	@Nullable
 	private BeanDefinitionParser findParserForElement(Element element, ParserContext parserContext) {
+		// 获取 element 名称
 		String localName = parserContext.getDelegate().getLocalName(element);
+		// 从parsers缓存中查找 BeanDefinitionParser
 		BeanDefinitionParser parser = this.parsers.get(localName);
 		if (parser == null) {
 			parserContext.getReaderContext().fatal(
@@ -135,6 +139,7 @@ public abstract class NamespaceHandlerSupport implements NamespaceHandler {
 	 * name.
 	 */
 	protected final void registerBeanDefinitionParser(String elementName, BeanDefinitionParser parser) {
+		// 子类调用他来注册提供的 BeanDefinitionParser, 用以处理指定的 Element 标签节点
 		this.parsers.put(elementName, parser);
 	}
 
@@ -144,6 +149,7 @@ public abstract class NamespaceHandlerSupport implements NamespaceHandler {
 	 * name.
 	 */
 	protected final void registerBeanDefinitionDecorator(String elementName, BeanDefinitionDecorator dec) {
+		// 子类调用他来注册提供的 BeanDefinitionDecorator, 用以处理指定的元素
 		this.decorators.put(elementName, dec);
 	}
 
