@@ -50,10 +50,13 @@ public class AnnotatedBeanDefinitionReader {
 
 	private final BeanDefinitionRegistry registry;
 
+	// beanName生成器, 默认是 AnnotationBeanNameGenerator
 	private BeanNameGenerator beanNameGenerator = AnnotationBeanNameGenerator.INSTANCE;
 
+	// 用于解析 bean 定义scope 作用域的策略接口, 默认是 AnnotationScopeMetadataResolver
 	private ScopeMetadataResolver scopeMetadataResolver = new AnnotationScopeMetadataResolver();
 
+	// 用于解析@Conditional注解 判断是否跳过某项处理
 	private ConditionEvaluator conditionEvaluator;
 
 
@@ -68,6 +71,9 @@ public class AnnotatedBeanDefinitionReader {
 	 * @see #setEnvironment(Environment)
 	 */
 	public AnnotatedBeanDefinitionReader(BeanDefinitionRegistry registry) {
+		// 使用给定的注册表创建一个 AnnotatedBeanDefinitionReader
+
+		// 调用另一个构造器
 		this(registry, getOrCreateEnvironment(registry));
 	}
 
@@ -85,6 +91,9 @@ public class AnnotatedBeanDefinitionReader {
 		Assert.notNull(environment, "Environment must not be null");
 		this.registry = registry;
 		this.conditionEvaluator = new ConditionEvaluator(registry, environment, null);
+		// 注册一系列的注解配置后处理器, 用于后续创建bean实例过程中对大量相关注解的处理, 比如 ConfigurationClassPostProcessor
+		// AutowiredAnnotationBeanPostProcessor、CommonAnnotationBeanPostProcessor 等后置处理器都是在这里注册
+		// 解析<context:component-scan/>、<context:annotation-config/> 也会调用该方法
 		AnnotationConfigUtils.registerAnnotationConfigProcessors(this.registry);
 	}
 
@@ -250,17 +259,26 @@ public class AnnotatedBeanDefinitionReader {
 			@Nullable Class<? extends Annotation>[] qualifiers, @Nullable Supplier<T> supplier,
 			@Nullable BeanDefinitionCustomizer[] customizers) {
 
+		// 创建 AnnotatedGenericBeanDefinition
 		AnnotatedGenericBeanDefinition abd = new AnnotatedGenericBeanDefinition(beanClass);
+		// 如果需要跳过当前组件类的处理, 直接返回
+		// 通过该判断class 上的 @Conditional 条件注解 是否满足 Condition 条件来控制是否跳过该配置类的解析
 		if (this.conditionEvaluator.shouldSkip(abd.getMetadata())) {
 			return;
 		}
 
+		// 用于创建bean实例的回调生产者, Spring5.0和Java8的新特性
+		// 如果通过supplier创建了实例,
 		abd.setInstanceSupplier(supplier);
+		// 解析@Scope, 设置scope 作用域
 		ScopeMetadata scopeMetadata = this.scopeMetadataResolver.resolveScopeMetadata(abd);
 		abd.setScope(scopeMetadata.getScopeName());
+		// 对于组件类的解析, 由于name传递null, 因此将使用beanNameGenerator生成beanName
 		String beanName = (name != null ? name : this.beanNameGenerator.generateBeanName(abd, this.registry));
 
+		// 处理类上的其他通用注解 @Lazy @Primary @DependsOn @Role @Description
 		AnnotationConfigUtils.processCommonDefinitionAnnotations(abd);
+		// 对于组件类的解析
 		if (qualifiers != null) {
 			for (Class<? extends Annotation> qualifier : qualifiers) {
 				if (Primary.class == qualifier) {
@@ -280,8 +298,11 @@ public class AnnotatedBeanDefinitionReader {
 			}
 		}
 
+		// 根据beanDefinition、beanName
 		BeanDefinitionHolder definitionHolder = new BeanDefinitionHolder(abd, beanName);
+		// 设置代理的方式 ScopedProxyMode
 		definitionHolder = AnnotationConfigUtils.applyScopedProxyMode(scopeMetadata, definitionHolder, this.registry);
+		// 核心方法. 调用 BeanDefinitionReaderUtils.registerBeanDefinition 将解析的 BeanDefinition 注册到 registry
 		BeanDefinitionReaderUtils.registerBeanDefinition(definitionHolder, this.registry);
 	}
 
@@ -292,7 +313,11 @@ public class AnnotatedBeanDefinitionReader {
 	 */
 	private static Environment getOrCreateEnvironment(BeanDefinitionRegistry registry) {
 		Assert.notNull(registry, "BeanDefinitionRegistry must not be null");
+		// 如果属于 EnvironmentCapable 即可获取环境 AnnotationConfigApplicationContext 属于该类型
 		if (registry instanceof EnvironmentCapable) {
+			// 调用 getEnvironment 获取环境, 实际上调用父类 AbstractApplicationContext
+			// 如果 AbstractApplicationContext 的 environment 为空 就会创建一个 StandardEnvironment 返回
+			// StandardEnvironment 的 systemProperties JVM 属性源 和 systemEnvironment 系统环境属性源
 			return ((EnvironmentCapable) registry).getEnvironment();
 		}
 		return new StandardEnvironment();

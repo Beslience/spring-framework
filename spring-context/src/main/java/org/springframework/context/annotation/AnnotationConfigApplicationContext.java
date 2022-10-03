@@ -54,7 +54,8 @@ import org.springframework.util.Assert;
  * @see org.springframework.context.support.GenericXmlApplicationContext
  */
 public class AnnotationConfigApplicationContext extends GenericApplicationContext implements AnnotationConfigRegistry {
-	// 从注解进行加载配置
+	// 从注解进行加载配置: AnnotationConfigRegistry接口, 支持通过Java 配置类(register) 和 直接扫描包路径(scan)
+	// 仅支持非web环境, 支持web环境: AnnotationConfigWebApplicationContext、AnnotationConfigServletWebApplicationContext
 
 	private final AnnotatedBeanDefinitionReader reader;
 
@@ -67,8 +68,10 @@ public class AnnotationConfigApplicationContext extends GenericApplicationContex
 	 */
 	public AnnotationConfigApplicationContext() {
 		StartupStep createAnnotatedBeanDefReader = this.getApplicationStartup().start("spring.context.annotated-bean-reader.create");
+		// 设置注解Bean定义读取器
 		this.reader = new AnnotatedBeanDefinitionReader(this);
 		createAnnotatedBeanDefReader.end();
+		// 设置类路径Bean定义扫描器
 		this.scanner = new ClassPathBeanDefinitionScanner(this);
 	}
 
@@ -90,6 +93,7 @@ public class AnnotationConfigApplicationContext extends GenericApplicationContex
 	 */
 	public AnnotationConfigApplicationContext(Class<?>... componentClasses) {
 		this();
+		// 相比于 ClassPathXmlApplication 的 setConfigLocations, 这个是 register
 		register(componentClasses);
 		refresh();
 	}
@@ -101,7 +105,9 @@ public class AnnotationConfigApplicationContext extends GenericApplicationContex
 	 * @param basePackages the packages to scan for component classes
 	 */
 	public AnnotationConfigApplicationContext(String... basePackages) {
+		// 初始化reader、scanner
 		this();
+		// 扫描给定包的组件, 为这些组件注册 beanDefinition
 		scan(basePackages);
 		refresh();
 	}
@@ -166,6 +172,7 @@ public class AnnotationConfigApplicationContext extends GenericApplicationContex
 		Assert.notEmpty(componentClasses, "At least one component class must be specified");
 		StartupStep registerComponentClass = this.getApplicationStartup().start("spring.context.component-classes.register")
 				.tag("classes", () -> Arrays.toString(componentClasses));
+		// 通过 AnnotationBeanDefinitionReader 注册组件类
 		this.reader.register(componentClasses);
 		registerComponentClass.end();
 	}

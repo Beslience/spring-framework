@@ -73,6 +73,8 @@ public class ClassPathBeanDefinitionScanner extends ClassPathScanningCandidateCo
 
 	private ScopeMetadataResolver scopeMetadataResolver = new AnnotationScopeMetadataResolver();
 
+	// ClassPathBeanDefinition 的属性
+	// 是否包括注解配置的解析
 	private boolean includeAnnotationConfig = true;
 
 
@@ -137,6 +139,8 @@ public class ClassPathBeanDefinitionScanner extends ClassPathScanningCandidateCo
 	public ClassPathBeanDefinitionScanner(BeanDefinitionRegistry registry, boolean useDefaultFilters,
 			Environment environment) {
 
+		// 注册默认类型过滤器, 尝试添加 @Component @ManagedBean @Named 这三个注解类型过滤器到 includedFilters 缓存集合
+		// 加载 META-INF/spring.components 组件索引文件, 避免扫描包, 提升应用启动速度
 		this(registry, useDefaultFilters, environment,
 				(registry instanceof ResourceLoader ? (ResourceLoader) registry : null));
 	}
@@ -249,15 +253,21 @@ public class ClassPathBeanDefinitionScanner extends ClassPathScanningCandidateCo
 	 * @return number of beans registered
 	 */
 	public int scan(String... basePackages) {
+		// 扫描之前容器中的beanDefinition 数量
 		int beanCountAtScanStart = this.registry.getBeanDefinitionCount();
 
+		// 核心方法: 执行扫描
 		doScan(basePackages);
 
 		// Register annotation config processors, if necessary.
 		if (this.includeAnnotationConfig) {
+			// 注册一系列的注解配置后处理器, 用于后续创建bean实例过程中对大量相关注解的处理, 比如 ConfigurationClassPostProcessor
+			// AutowiredAnnotationBeanPostProcessor、CommonAnnotationBeanPostProcessor 等后置处理器都是在这里注册
+			// 解析<context:component-scan/>、<context:annotataion-config/> 也会调用该方法
 			AnnotationConfigUtils.registerAnnotationConfigProcessors(this.registry);
 		}
 
+		// 返回本次扫描注册的 beanDefinition 数量
 		return (this.registry.getBeanDefinitionCount() - beanCountAtScanStart);
 	}
 
